@@ -2,30 +2,38 @@ use std::error::Error;
 use std::env;
 use std::fs;
 
-pub fn run(filename: String) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(filename)?;
-
-    println!("{} bytes", calculate(contents));
+pub fn run(filenames: Vec<String>) -> Result<(), Box<dyn Error>> {
+    for filename in filenames {
+        let contents = fs::read_to_string(&filename)?;
+        println!("{} bytes, {}", calculate(contents), filename);
+    }
 
     Ok(())
 }
 
-pub fn parse_arg(mut arg: env::Args) -> Result<String, &'static str>{
+pub fn parse_arg(mut arg: env::Args) -> Result<Vec<String>, &'static str>{
     arg.next();
 
-    let filename = match arg.next() {
-        Some(arg) => arg,
-        None => return Err("Didn't get a file path"),
-    };
+    let mut filenames = Vec::new();
 
-    Ok(filename)
+
+    loop {
+        match arg.next() {
+            Some(arg) => filenames.push(arg),
+            None => break,
+        };
+    }
+
+    if filenames.len() < 1 {
+        return Err("Didn't get a file path")
+    }
+
+    Ok(filenames)
 }
 
 fn calculate(contents: String) -> usize {
     let mut bytes = contents.len();
     bytes += contents.lines().count() - 1;
-
-    println!("{}", contents.lines().count());
 
     bytes
 }
